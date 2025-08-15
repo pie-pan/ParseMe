@@ -1,14 +1,24 @@
 package com.parseme.core;
 
 import com.parseme.exceptions.ParseMeError;
-import com.parseme.registry.ParserTypeRegistry;
-import com.parseme.type.FieldType;
-import com.parseme.type.Parser;
+import com.parseme.parser.registry.ParserTypeRegistry;
+import com.parseme.parser.FieldType;
+import com.parseme.parser.Format;
+import com.parseme.parser.Parser;
+import com.parseme.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 
 public class ParseUtils {
 
+    /**
+     * Return a java object from a positional string
+     * @param input
+     * @param clazz
+     * @return
+     * @param <T>
+     */
     public static <T> T parse(String input, Class<T> clazz) {
         T instance;
         try {
@@ -26,15 +36,15 @@ public class ParseUtils {
     }
 
     public static Object readField(Field field, Class<?> clazz, String input) {
-        if (!field.isAnnotationPresent(com.parseme.annotation.Field.class)) {
-            throw new IllegalArgumentException("Field " + field.getName() + " is not annotated with @Field");
-        }
+        validateAnnotation(field);
 
         com.parseme.annotation.Field annotation = field.getAnnotation(com.parseme.annotation.Field.class);
         assert annotation != null;
         int offset = annotation.offset();
         int length = annotation.length();
         FieldType type = annotation.type();
+        Format format = annotation.format();
+
         String fieldValue = input.substring(offset, offset + length);
 
         field.setAccessible(true);
@@ -43,7 +53,53 @@ public class ParseUtils {
             return parse(input, clazz);
         } else {
             Parser<?> parser = ParserTypeRegistry.getParser(type);
-            return parser.read(fieldValue);
+            return parser.read(fieldValue, format);
         }
     }
+
+    /**
+     * return positional string from java Object with com.parseme.annotation.Field annotation
+     * @param input
+     * @return
+     */
+    public static String parse(Object input) {
+        String output = "";
+        try {
+            Field [] fields = input.getClass().getDeclaredFields();
+
+            for (Field field : fields) {
+                String value = writeField(field, input);
+                output += value;
+            }
+
+        } catch (Exception e) {
+            throw new ParseMeError("Failed to create an instance of " + input.getClass().getName(), e);
+        }
+        return output;
+    }
+
+    public static String writeField(Field field, Object o) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+        validateAnnotation(field);
+
+        com.parseme.annotation.Field annotation = field.getAnnotation(com.parseme.annotation.Field.class);
+        assert annotation != null;
+        int length = annotation.length();
+        FieldType type = annotation.type();
+        Format format = annotation.format();
+
+        if (FieldType.CUSTOM.equals(type)) {
+            return parse(o);
+        } else {
+            Parser<?> parser = ParserTypeRegistry.getParser(type);
+            field.setAccessible(true);
+            return StringUtils.leftPad(parser.write(field.get(o), format), length);
+        }
+    }
+
+    private static void validateAnnotation(Field field) {
+        if (!field.isAnnotationPresent(com.parseme.annotation.Field.class)) {
+            throw new IllegalArgumentException("Field " + field.getName() + " is not annotated with @Field");
+        }
+    }
+
 }
