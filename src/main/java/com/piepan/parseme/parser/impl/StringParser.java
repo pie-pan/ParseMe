@@ -1,7 +1,7 @@
-package com.parseme.parser.impl;
+package com.piepan.parseme.parser.impl;
 
-import com.parseme.parser.Format;
-import com.parseme.parser.Parser;
+import com.piepan.parseme.parser.Format;
+import com.piepan.parseme.parser.Parser;
 
 public class StringParser extends Parser<String> {
 

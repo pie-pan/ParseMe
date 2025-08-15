@@ -1,10 +1,11 @@
-package com.parseme.parser.registry;
+package com.piepan.parseme.parser.registry;
 
-import com.parseme.parser.*;
-import com.parseme.parser.impl.BooleanParser;
-import com.parseme.parser.impl.DateParser;
-import com.parseme.parser.impl.DateTimeParser;
-import com.parseme.parser.impl.StringParser;
+import com.piepan.parseme.parser.FieldType;
+import com.piepan.parseme.parser.Parser;
+import com.piepan.parseme.parser.impl.BooleanParser;
+import com.piepan.parseme.parser.impl.DateParser;
+import com.piepan.parseme.parser.impl.DateTimeParser;
+import com.piepan.parseme.parser.impl.StringParser;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

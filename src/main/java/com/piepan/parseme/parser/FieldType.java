@@ -1,4 +1,4 @@
-package com.parseme.parser;
+package com.piepan.parseme.parser;
 
 public enum FieldType {
     STRING,
