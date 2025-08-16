@@ -24,7 +24,7 @@ public class DateTimeParser extends Parser<LocalDateTime> {
             return null;
         }
 
-        return LocalDateTime.parse(input);
+        return format(input, format);
     }
 
     private String format(LocalDateTime input, Format format) {
@@ -36,6 +36,15 @@ public class DateTimeParser extends Parser<LocalDateTime> {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return formatter.format(input);
+    }
+
+    private LocalDateTime format(String input, Format format) {
+        String pattern = "yyyy-MM-dd HH:mm:sss";
+        if (Format.EMPTY != format) {
+            pattern = format.getText();
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        return LocalDateTime.parse(input, formatter);
     }
 
 }
