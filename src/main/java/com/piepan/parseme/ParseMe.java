@@ -1,6 +1,7 @@
 package com.piepan.parseme;
 
 import com.piepan.parseme.exceptions.ParseMeException;
+import com.piepan.parseme.parser.PaddingType;
 import com.piepan.parseme.parser.registry.ParserTypeRegistry;
 import com.piepan.parseme.parser.FieldType;
 import com.piepan.parseme.parser.Format;
@@ -45,6 +46,10 @@ public class ParseMe {
         FieldType type = annotation.type();
         Format format = annotation.format();
 
+        if ( offset + length > input.length()) {
+            throw new ParseMeException("Input string is too short for field " + field.getName() + ". Expected length: " + (offset + length) + ", but got: " + input.length());
+        }
+
         String fieldValue = input.substring(offset, offset + length);
 
         field.setAccessible(true);
@@ -63,22 +68,22 @@ public class ParseMe {
      * @return
      */
     public static String parse(Object input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         try {
             Field [] fields = input.getClass().getDeclaredFields();
 
             for (Field field : fields) {
                 String value = writeField(field, input);
-                output += value;
+                output.append(value);
             }
 
         } catch (Exception e) {
             throw new ParseMeException("Failed to create an instance of " + input.getClass().getName(), e);
         }
-        return output;
+        return output.toString();
     }
 
-    public static String writeField(Field field, Object o) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
+    public static String writeField(Field field, Object o) throws IllegalAccessException {
         validateAnnotation(field);
 
         com.piepan.parseme.annotation.Field annotation = field.getAnnotation(com.piepan.parseme.annotation.Field.class);
@@ -86,13 +91,16 @@ public class ParseMe {
         int length = annotation.length();
         FieldType type = annotation.type();
         Format format = annotation.format();
+        PaddingType paddingType = annotation.padding();
+        char paddingChar = annotation.paddingChar();
 
         if (FieldType.CUSTOM.equals(type)) {
             return parse(o);
         } else {
             Parser<?> parser = ParserTypeRegistry.getParser(type);
             field.setAccessible(true);
-            return StringUtils.leftPad(parser.write(field.get(o), format), length);
+            String value = parser.write(field.get(o), format);
+            return StringUtils.padField(paddingType, value, length, paddingChar);
         }
     }
 

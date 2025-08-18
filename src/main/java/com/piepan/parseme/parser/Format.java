@@ -5,12 +5,12 @@ import static com.piepan.parseme.util.Constants.EMPTY_STRING;
 public enum Format {
     NUMERIC(EMPTY_STRING),
     ALPHANUMERIC(EMPTY_STRING),
-    DATE_YYYY_MM_DD_HH_MM_SS("yyyy-MM-dd HH-mm-ss"),
-    DATE_YYYY_MM_DD_HH_MM("yyyy-MM-dd HH-mm"),
-    DATE_YYYY_MM_DD("YYYY-MM-DD"),
+    DATE_YYYY_MM_DD_HH_MM_SS("yyyy-MM-dd HH:mm:ss"),
+    DATE_YYYY_MM_DD_HH_MM("yyyy-MM-dd HH:mm"),
+    DATE_YYYY_MM_DD("yyyy-MM-DD"),
     EMPTY(EMPTY_STRING);
 
-    private String text;
+    private final String text;
 
     Format(String text) {
         this.text  = text;

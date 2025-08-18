@@ -8,5 +8,5 @@ public enum FieldType {
     BOOLEAN,
     DATE,
     DATETIME,
-    CUSTOM;
+    CUSTOM
 }

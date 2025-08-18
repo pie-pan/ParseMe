@@ -20,7 +20,7 @@ public class BooleanParser extends Parser<Boolean> {
             return null;
         }
 
-        return Boolean.valueOf(Boolean.parseBoolean(input));
+        return Boolean.parseBoolean(input);
     }
 
     private String format(Boolean b, Format format) {
