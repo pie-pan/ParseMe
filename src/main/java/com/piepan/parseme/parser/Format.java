@@ -7,7 +7,7 @@ public enum Format {
     ALPHANUMERIC(EMPTY_STRING),
     DATE_YYYY_MM_DD_HH_MM_SS("yyyy-MM-dd HH:mm:ss"),
     DATE_YYYY_MM_DD_HH_MM("yyyy-MM-dd HH:mm"),
-    DATE_YYYY_MM_DD("yyyy-MM-DD"),
+    DATE_YYYY_MM_DD("yyyy-MM-dd"),
     EMPTY(EMPTY_STRING);
 
     private final String text;

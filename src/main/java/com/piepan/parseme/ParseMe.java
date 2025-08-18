@@ -55,7 +55,7 @@ public class ParseMe {
         field.setAccessible(true);
 
         if (FieldType.CUSTOM.equals(type)) {
-            return parse(input, clazz);
+            return parse(fieldValue, field.getType());
         } else {
             Parser<?> parser = ParserTypeRegistry.getParser(type);
             return parser.read(fieldValue, format);
