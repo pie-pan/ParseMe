@@ -42,6 +42,17 @@ public class ParseMeTest {
     }
 
     @Test
+    void stringToObject_shouldParse_whenFieldsAreNotSortedByOffset() throws Exception {
+        String input = "John2023-10-01N";
+
+        WithAnnotationNotSorted result = ParseMe.parse(input, WithAnnotationNotSorted.class);
+
+        assertEquals("John", result.name);
+        assertEquals(LocalDate.of(2023, 10, 1), result.birthDate);
+        assertFalse(result.isActive);
+    }
+
+    @Test
     void objectToString_shouldThrow_whenFieldHasNoAnnotation() throws Exception {
         NoAnnotation noAnnotation = new NoAnnotation();
         noAnnotation.field = "text";
@@ -59,6 +70,31 @@ public class ParseMeTest {
         String result = ParseMe.parse(withAnnotation);
 
         assertEquals("John2023-10-010", result);
+    }
+
+    @Test
+    void objectToString_shouldParseCustomField_whenFieldHasCustomAnnotation() throws Exception {
+        String expected = "ProductA  000012023-10-01";
+        WithAnnotationCustom withAnnotationCustom = new WithAnnotationCustom();
+        withAnnotationCustom.productName = "ProductA  ";
+        withAnnotationCustom.nestedField = new NestedClass();
+        withAnnotationCustom.nestedField.code = "00001";
+        withAnnotationCustom.nestedField.startDate = LocalDate.of(2023, 10, 1);
+
+        String actual = ParseMe.parse(withAnnotationCustom);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void objectToString_shouldParse_whenFieldsAreNotSortedByOffset() throws Exception {
+        String expected = "John2023-10-010";
+        WithAnnotationNotSorted withAnnotationNotSorted = new WithAnnotationNotSorted();
+        withAnnotationNotSorted.name = "John";
+        withAnnotationNotSorted.birthDate = LocalDate.of(2023, 10, 1);
+        withAnnotationNotSorted.isActive = false;
+        String actual = ParseMe.parse(withAnnotationNotSorted);
+        assertEquals(expected, actual);
     }
 
     static class NoAnnotation{
@@ -79,6 +115,16 @@ public class ParseMeTest {
         String productName;
         @Field(length = 15, offset = 10, type = FieldType.CUSTOM)
         NestedClass nestedField;
+    }
+
+    static class WithAnnotationNotSorted {
+
+        @Field(length = 10, offset = 4, type = FieldType.DATE, format = Format.DATE_YYYY_MM_DD)
+        LocalDate birthDate;
+        @Field(length = 4, offset = 0)
+        String name;
+        @Field(length = 1, offset = 14, type = FieldType.BOOLEAN, format = Format.NUMERIC)
+        Boolean isActive;
     }
 
     static class NestedClass {

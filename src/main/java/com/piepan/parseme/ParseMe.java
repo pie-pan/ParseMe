@@ -9,7 +9,6 @@ import com.piepan.parseme.parser.Parser;
 import com.piepan.parseme.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 
 public class ParseMe {
 
@@ -24,9 +23,9 @@ public class ParseMe {
         T instance;
         try {
             instance = clazz.getDeclaredConstructor().newInstance();
-            Field [] fields = clazz.getDeclaredFields();
+            Field [] fields = orderFieldsByOffset(clazz.getDeclaredFields());
             for (Field field : fields) {
-                var value = readField(field, clazz, input);
+                var value = readField(field, input);
                 field.setAccessible(true);
                 field.set(instance, value);
             }
@@ -36,11 +35,9 @@ public class ParseMe {
         return instance;
     }
 
-    public static Object readField(Field field, Class<?> clazz, String input) {
-        validateAnnotation(field);
+    public static Object readField(Field field, String input) {
 
         com.piepan.parseme.annotation.Field annotation = field.getAnnotation(com.piepan.parseme.annotation.Field.class);
-        assert annotation != null;
         int offset = annotation.offset();
         int length = annotation.length();
         FieldType type = annotation.type();
@@ -70,7 +67,7 @@ public class ParseMe {
     public static String parse(Object input) {
         StringBuilder output = new StringBuilder();
         try {
-            Field [] fields = input.getClass().getDeclaredFields();
+            Field [] fields = orderFieldsByOffset(input.getClass().getDeclaredFields());
 
             for (Field field : fields) {
                 String value = writeField(field, input);
@@ -84,10 +81,8 @@ public class ParseMe {
     }
 
     public static String writeField(Field field, Object o) throws IllegalAccessException {
-        validateAnnotation(field);
 
         com.piepan.parseme.annotation.Field annotation = field.getAnnotation(com.piepan.parseme.annotation.Field.class);
-        assert annotation != null;
         int length = annotation.length();
         FieldType type = annotation.type();
         Format format = annotation.format();
@@ -95,7 +90,7 @@ public class ParseMe {
         char paddingChar = annotation.paddingChar();
 
         if (FieldType.CUSTOM.equals(type)) {
-            return parse(o);
+            return parse(field.get(o));
         } else {
             Parser<?> parser = ParserTypeRegistry.getParser(type);
             field.setAccessible(true);
@@ -104,10 +99,20 @@ public class ParseMe {
         }
     }
 
-    private static void validateAnnotation(Field field) {
-        if (!field.isAnnotationPresent(com.piepan.parseme.annotation.Field.class)) {
-            throw new IllegalArgumentException("Field " + field.getName() + " is not annotated with @Field");
+    private static Field[] orderFieldsByOffset(Field[] fields) {
+        Field [] fieldsSorted = java.util.Arrays.stream(fields)
+                .filter(field -> field.isAnnotationPresent(com.piepan.parseme.annotation.Field.class))
+                .sorted((f1, f2) -> {
+                    int offset1 = f1.getAnnotation(com.piepan.parseme.annotation.Field.class).offset();
+                    int offset2 = f2.getAnnotation(com.piepan.parseme.annotation.Field.class).offset();
+                    return Integer.compare(offset1, offset2);
+                })
+                .toArray(Field[]::new);
+
+        if (fieldsSorted.length != fields.length) {
+            throw new ParseMeException("No fields annotated with @Field found");
         }
+        return fieldsSorted;
     }
 
 }
